@@ -1,15 +1,11 @@
-const puppeteer = require('puppeteer-core'); // Use puppeteer-core for custom Chrome installation
+const puppeteer = require('puppeteer');
 
 const detoxify = async (req, res) => {
     const { topic } = req.body;
 
     try {
         // Launch Puppeteer browser (non-headless so you can see actions)
-        const browser = await puppeteer.launch({
-            headless: false,
-            executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', // Path to your Chrome installation
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
+        const browser = await puppeteer.launch({ headless: false });
         const page = await browser.newPage();
 
         // Go to YouTube (assuming you're already logged in)
@@ -39,13 +35,16 @@ const detoxify = async (req, res) => {
             // Wait for the video player to load
             await page.waitForSelector('.html5-video-container');
 
-            // Make the video play at 2x speed
+            // Set video playback speed to 2x
             await page.evaluate(() => {
-                document.querySelector('video').playbackRate = 2.0;
+                const video = document.querySelector('video');
+                if (video) {
+                    video.playbackRate = 2.0; // Set playback speed to 2x
+                }
             });
 
-            // Play video for 30 seconds
-            await new Promise(resolve => setTimeout(resolve, 30000)); // Introducing a 30-second wait
+            // Play video for 15 seconds (since it's 2x speed, it simulates 30 seconds of real time)
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Introducing a 15-second wait
 
             // Like the video
             const likeButton = await page.$('button[aria-label="Like this video"]');
@@ -65,7 +64,7 @@ const detoxify = async (req, res) => {
         }
 
         await browser.close();
-        res.status(200).send('Detoxification completed. Watched, liked, and subscribed to the top 10 videos.');
+        res.status(200).send('Detoxification completed. Watched, liked, and subscribed to the top 10 videos at 2x speed.');
     } catch (error) {
         console.error('Error in YouTube automation:', error);
         res.status(500).send('Error occurred during detoxification.');
