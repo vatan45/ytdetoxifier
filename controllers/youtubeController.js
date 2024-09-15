@@ -1,11 +1,21 @@
-const puppeteer = require('puppeteer');
+const chromium = require('chrome-aws-lambda');
+const puppeteer = require('puppeteer-core');
 
 const detoxify = async (req, res) => {
     const { topic } = req.body;
 
+    let browser;
+
     try {
-        // Launch Puppeteer browser (non-headless so you can see actions)
-        const browser = await puppeteer.launch({ headless: false });
+        // Launch Puppeteer with chrome-aws-lambda
+        browser = await puppeteer.launch({
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath,
+            headless: true, // Must be headless for serverless environments
+            ignoreHTTPSErrors: true,
+        });
+
         const page = await browser.newPage();
 
         // Go to YouTube (assuming you're already logged in)
@@ -44,7 +54,7 @@ const detoxify = async (req, res) => {
             });
 
             // Play video for 15 seconds (since it's 2x speed, it simulates 30 seconds of real time)
-            await new Promise(resolve => setTimeout(resolve, 5000)); // Introducing a 15-second wait
+            await new Promise(resolve => setTimeout(resolve, 15000)); // Introducing a 15-second wait
 
             // Like the video
             const likeButton = await page.$('button[aria-label="Like this video"]');
@@ -64,9 +74,12 @@ const detoxify = async (req, res) => {
         }
 
         await browser.close();
-        res.status(200).send('Detoxification completed. Watched, liked, and subscribed to the top 10 videos at 2x speed.');
+        res.status(200).send('Detoxification completed. Watched, liked, and subscribed to the top 10 videos.');
     } catch (error) {
         console.error('Error in YouTube automation:', error);
+        if (browser) {
+            await browser.close();
+        }
         res.status(500).send('Error occurred during detoxification.');
     }
 };
