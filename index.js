@@ -1,3 +1,4 @@
+// index.js
 const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
@@ -16,6 +17,11 @@ connectDB();
 // Routes
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/user', userRoutes);
+
+// Root route
+app.get('/', (req, res) => {
+    res.send('Welcome to the YouTube Detoxifier API. Use /api/youtube for YouTube operations.');
+});
 
 // Server Listener
 const PORT = process.env.PORT || 5001;
