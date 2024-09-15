@@ -1,8 +1,11 @@
+// api/youtube.js
 const express = require('express');
-const router = express.Router();
 const { detoxify } = require('../controllers/youtubeController');
 
-// Define the route for detoxify
-router.post('/detoxify', detoxify);
+const app = express();
 
-module.exports = router;
+app.use(express.json());
+
+app.post('/detoxify', detoxify);
+
+module.exports = app;
